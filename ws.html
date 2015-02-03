@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8" />
+<title>WebSocket Test</title>
+<body>
+<script language="javascript" type="text/javascript">
+  var player;
+
+  // Websocket control
+  var wsUri = "ws://localhost:8090/";
+  var output;
+  function init() {
+    output = document.getElementById("output");
+    testWebSocket();
+  }
+  function testWebSocket() {
+    websocket = new WebSocket(wsUri);
+    websocket.onopen = onOpen;
+    websocket.onclose = onClose;
+    websocket.onmessage = onMessage;
+    websocket.onerror = onError;
+  }
+  function onOpen(evt) {
+    writeToScreen("CONNECTED");
+  }
+  function onClose(evt) { writeToScreen("DISCONNECTED"); }
+  function onMessage(evt) {
+    if(evt.data == 'PING') return;
+    writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data+'</span>');
+    var arr = evt.data.split(',');
+    switch(arr[0]) {
+      case 'PLAY':
+        playTrack(arr[1], arr[2], parseInt(arr[3]));
+        break;
+      default:
+        break;
+    }
+
+  }
+  function onError(evt) { writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data); }
+  function writeToScreen(message) {
+    var pre = document.createElement("p");
+    pre.style.wordWrap = "break-word";
+    pre.innerHTML = message;
+    output.appendChild(pre);
+  }
+
+  function playTrack(srcType, trackId, seconds) {
+    switch(srcType) {
+      case 'yt':
+        player.loadVideoById(trackId, seconds);
+        break;
+      default:
+        break;
+    }
+  }
+
+  // youtube player
+  var tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  var firstScriptTag = document.getElementsByTagName('script')[0];
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+  function onYouTubeIframeAPIReady() {
+    new YT.Player('player', {
+      width: 720,
+      height:480,
+      //videoId: 'dVVZaZ8yO6o',
+      events: {
+        'onReady': onPlayerReady,
+        'onStateChange': onPlayerStateChange
+      }
+    });
+  }
+  function onPlayerReady(evt) {
+    player = evt.target;
+    player.playVideo();
+  }
+  function onPlayerStateChange(evt) {
+
+  }
+
+  window.addEventListener("load", init, false);
+</script>
+<h2>WebSocket Test</h2>
+<div id="player"></div>
+<iframe src="https://kiwiirc.com/client/csc.nmu.edu/?nick=radio_user|?&theme=cli#nmu" style="border:0; width:100%; height:450px;"></iframe>
+<div id="output"></div>
+</body>
+</html>
