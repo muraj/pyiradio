@@ -3,6 +3,11 @@
 <meta charset="utf-8" />
 <title>WebSocket Test</title>
 <body>
+<style>
+  #irc { overflow:auto; min-width:400px;}
+  #player { float:left; }
+  #output { clear:both; }
+</style>
 <script language="javascript" type="text/javascript">
   var player;
 
@@ -81,9 +86,12 @@
 
   window.addEventListener("load", init, false);
 </script>
+
 <h2>WebSocket Test</h2>
 <div id="player"></div>
-<iframe src="https://kiwiirc.com/client/csc.nmu.edu/?nick=radio_user|?&theme=cli#nmu" style="border:0; width:100%; height:450px;"></iframe>
+<div id="irc">
+  <iframe src="https://kiwiirc.com/client/csc.nmu.edu/?nick=radio_user|?&theme=cli#nmu" style="border:0;width:100%;height:480px;"></iframe>
+</div>
 <div id="output"></div>
 </body>
 </html>

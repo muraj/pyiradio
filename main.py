@@ -5,6 +5,7 @@ from twisted.python import log
 import sys
 
 from PlayerController import PlayerController, Track
+from Playlist import PlaylistResource
 
 if __name__ == '__main__':
   log.startLogging(sys.stdout)
@@ -12,7 +13,9 @@ if __name__ == '__main__':
   factory.protocol = PlayerController
   reactor.listenTCP(8090, factory)
 
-  root = static.File('.')
+  root = resource.Resource()
+  root.putChild('playlist', PlaylistResource(PlayerController.playList))
+  root.putChild('index', static.File('.'))
   reactor.listenTCP(8080, server.Site(root))
 
   mock_playlist = [Track('yt', 'ndiD8V7zpAs', 201), Track('yt', 'PfrsvfcZ8ZE', 68)]

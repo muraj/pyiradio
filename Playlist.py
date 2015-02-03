@@ -1,4 +1,5 @@
 import heapq
+from twisted.web import resource
 
 class Playlist(object):
   def __init__(self):
@@ -35,3 +36,18 @@ class Playlist(object):
     if not t.downvote(id): return False
     heapq.heapify(self.heap)  # Use sift down for O(n)
     return True
+
+  def peeknext(self, n=1):
+    return heapq.nsmallest(n, self.heap)
+
+class PlaylistResource(resource.Resource):
+  track_format = '{"srcid":"%s","trackid":"%s","score":%d}'
+
+  def __init__(self, playlist):
+    self.playlist = playlist
+
+  def render_GET(self, req):
+    tracks = []
+    for track in self.playlist.peeknext(len(self.playlist)):
+      tracks.append(PlaylistResource.track_format % (track.srcId, track.trackId, track.score))
+    return '[' + ','.join(tracks) + ']'
