@@ -32,10 +32,10 @@
   function onMessage(evt) {
     if(evt.data == 'PING') return;
     writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data+'</span>');
-    var arr = evt.data.split(',');
-    switch(arr[0]) {
+    var obj = JSON.parse(evt.data);
+    switch(obj.cmd) {
       case 'PLAY':
-        playTrack(arr[1], arr[2], parseInt(arr[3]));
+        playTrack(obj.srcId, obj.trackId, obj['time']);
         break;
       default:
         break;
@@ -54,6 +54,7 @@
     switch(srcType) {
       case 'yt':
         player.loadVideoById(trackId, seconds);
+        player.style.display = 'block';
         break;
       default:
         break;
@@ -69,7 +70,14 @@
     new YT.Player('player', {
       width: 720,
       height:480,
-      //videoId: 'dVVZaZ8yO6o',
+      playerVars: {
+        //'controls': 0,    // When a control widget is setup, uncomment
+        'disablekb':0,
+        'enablejsapi':1,
+        'rel':0,
+        'modestbranding':1,
+        'iv_load_policy':3,
+      },
       events: {
         'onReady': onPlayerReady,
         'onStateChange': onPlayerStateChange
@@ -78,7 +86,8 @@
   }
   function onPlayerReady(evt) {
     player = evt.target;
-    player.playVideo();
+    player.style.display = 'none';
+    //player.playVideo();
   }
   function onPlayerStateChange(evt) {
 
