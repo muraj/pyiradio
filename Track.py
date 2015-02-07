@@ -7,6 +7,10 @@ class Track(object):
     self.upvote_ids = set()
     self.downvote_ids = set()
 
+  def as_dict(self):
+    return { 'srcId':self.srcId, 'trackId':self.trackId,
+             'duration':self.duration, 'score':self.score }
+
   def __hash__(self):
     return hash(self.srcId + self.trackId)
 

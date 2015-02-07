@@ -4,7 +4,6 @@ from twisted.web import server, resource, static
 from twisted.python import log
 import sys
 
-
 from PlayerFactory import PlayerFactory
 from Track import Track
 from Playlist import PlaylistResource
@@ -16,7 +15,7 @@ if __name__ == '__main__':
 
   root = resource.Resource()
   root.putChild('playlist', PlaylistResource(factory.playList))
-  root.putChild('index', static.File('.'))
+  root.putChild('ws.html', static.File('ws.html'))
   reactor.listenTCP(8080, server.Site(root))
 
   mock_playlist = [Track('yt', 'ndiD8V7zpAs', 201), Track('yt', 'PfrsvfcZ8ZE', 68)]

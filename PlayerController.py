@@ -23,14 +23,17 @@ class PlayerController(ViewerController):
     pass
 
   def on_downvote(self, **kwargs):
-    # Check if this ip already voted
     # if not, add to downvote and broadcast new score to everyone
     #PlayerController.playList.downvote(srcid, trackid, id)
-    pass
+    if self.factory.playList.downvote(srcid, trackid, id):
+      self.factory.broadcast('PLAYLIST_CHANGE',
+        track=self.factory.getTrack(srcid, trackid).as_dict())
 
   def on_auth(self, **kwargs):
     # Check some user database for auth
+    # TODO: Replace with oauth or something
     self.auth = True
+    self.sendCommand('AUTH', success=self.auth)
 
   def on_add(self, **kwargs):
     if not self.auth: return
