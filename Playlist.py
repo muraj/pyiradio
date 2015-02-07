@@ -1,6 +1,6 @@
 import json
 import heapq
-from twisted.web import resource
+from twisted.web import resource, server
 
 class Playlist(object):
   def __init__(self):
@@ -45,13 +45,55 @@ class Playlist(object):
   def peeknext(self, n=1):
     return heapq.nsmallest(n, self.heap)
 
+class VoteResource(resource.Resource):
+
+  def __init__(self, playerFactory):
+    self.playerFactory = playerFactory
+
+  def render_GET(self, req):
+    srcid   = req.args.get('srcid', [None])[0]
+    trackid = req.args.get('trackid', [None])[0]
+    vote = req.args.get('vote', [None])[0]
+    id = req.getClientIP()
+    if not (srcid and trackid and vote):
+      return '"Invalid arguments"'
+    if vote == 'up':
+      self.playerFactory.upvote(srcid, trackid, id)
+    else:
+      self.playerFactory.downvote(srcid, trackid, id)
+    return '' # Something?
+
+class QueueResource(resource.Resource):
+  def __init__(self, playerFactory):
+    self.playerFactory = playerFactory
+
+  def _finishRender(self, track, req):
+    if track:
+      req.write(json.dumps(track.as_dict()))
+      #self.playerFactory.queue(track)
+    else:
+      req.write('Failed!')
+    req.finish()
+
+  def render_GET(self, req):
+    srcid   = req.args.get('srcid',   [None])[0]
+    trackid = req.args.get('trackid', [None])[0]
+    if not (srcid and trackid):
+      return '"Invalid arguments"'
+    #d = self.playerFactory.buildTrack(srcid, trackid)
+    #d.addCallback(self._finishRender, req)
+    #d.addErrCallback(self._finishRender, None, req)
+    #return server.NOT_DONE_YET
+    return '"NOT IMPLEMENTED YET"'
+
+  def render_POST(self, req):
+    return self.render_GET(req)
+
 class PlaylistResource(resource.Resource):
 
   def __init__(self, playlist):
     self.playlist = playlist
 
   def render_GET(self, req):
-    tracks = []
-    for track in self.playlist.peeknext(len(self.playlist)):
-      tracks.append(track.as_dict())
+    tracks = [ t.as_dict() for t in self.playlist.peeknext(len(self.playlist)) ]
     return json.dumps(tracks)
