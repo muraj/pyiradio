@@ -49,7 +49,7 @@ class PlayerFactory(ViewerFactory):
     self.playList.push(track)
 
   def play(self, track):
-    log.msg('Playing track:' + str(track))
+    log.msg('Playing track:' + str(track.as_dict()))
     self.currentTrack = track
     self.lastChanged = time.time()
     self.broadcast('PLAY', srcId=track.srcId, trackId=track.trackId)
@@ -66,3 +66,6 @@ class PlayerFactory(ViewerFactory):
       self.play(t)
     else:
       reactor.callLater(1, self.play_next)
+
+  def buildTrack(self, srcid, trackid):
+    raise NotImplementedError()
