@@ -43,6 +43,11 @@ class PlayerFactory(ViewerFactory):
     self.currentTrack = None
     self.lastChanged = 0
 
+  def _trackFinished(self, track):
+    # Ensure the track hasn't changed by some other means
+    if track != self.currentTrack: return
+    self.trackFinished(track)
+
   def trackFinished(self, track):
     # Add the track to history and play the next track!
     self.history.add((track.srcId, track.trackId, track.duration))
@@ -77,7 +82,7 @@ class PlayerFactory(ViewerFactory):
     self.broadcast('PLAY', srcId=track.srcId, trackId=track.trackId)
     # Approximate finishing a track and tell the api
     reactor.callLater(track.duration + self.MEDIA_CHANGE_DELAY,
-      self.trackFinished, track)
+      self._trackFinished, track)
 
   def play_next(self):
     if len(self.playList) > 0:
