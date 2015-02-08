@@ -58,7 +58,6 @@ class PlayerFactory(ViewerFactory):
     self.play_next()
 
   def queue(self, track):
-    print('Adding track')
     if not self.MIN_DURATION < track.duration < self.MAX_DURATION:
       return False
     if self.playList.push(track):
@@ -84,7 +83,7 @@ class PlayerFactory(ViewerFactory):
     log.msg('Playing track:' + str(track.as_dict()))
     self.currentTrack = track
     self.lastChanged = time.time()
-    self.broadcast('PLAY', srcId=track.srcId, trackId=track.trackId)
+    self.broadcast('PLAY', srcId=track.srcId, trackId=track.trackId, meta=track.meta)
     # Approximate finishing a track and tell the api
     reactor.callLater(track.duration + self.MEDIA_CHANGE_DELAY,
       self._trackFinished, track)

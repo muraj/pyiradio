@@ -14,7 +14,7 @@ class PlayerController(ViewerController):
       t = time.time() - self.factory.lastChanged
       t = min(t, track.duration)
       self.sendCommand('PLAY', srcId=track.srcId,
-        trackId=track.trackId, time=t)
+        trackId=track.trackId, time=t, meta=track.meta)
 
 """
   def on_upvote(self, **kwargs):

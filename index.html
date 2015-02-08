@@ -4,18 +4,26 @@
 <title>WebSocket Test</title>
 <body>
 <style>
-  #irc { overflow:auto; min-width:400px;}
+  marquee.player_info { width:400px; }
+  #irc { overflow:auto; min-width:400px; }
   #player { float:left; }
   #output { clear:both; }
+  #irc-client { border:0; width:100%; height:480px; }
+  #loginForm { display: inline; }
+  #loginForm label { display: inline; }
+  #loginForm input { display: inline; }
 </style>
 <script language="javascript" type="text/javascript">
   var player;
+  var userCred;
+  var reconnectLoop;
 
   // Websocket control
   var wsUri = "ws://localhost:8090/";
   var output;
   function init() {
     output = document.getElementById("output");
+    document.getElementById("loginForm").addEventListener('submit', processLogin);
     testWebSocket();
   }
   function testWebSocket() {
@@ -24,18 +32,22 @@
     websocket.onclose = onClose;
     websocket.onmessage = onMessage;
     websocket.onerror = onError;
+    if(reconnectLoop) clearInterval(reconnectLoop);
   }
   function onOpen(evt) {
     writeToScreen("CONNECTED");
   }
-  function onClose(evt) { writeToScreen("DISCONNECTED"); }
+  function onClose(evt) {
+    writeToScreen("DISCONNECTED");
+    reconnectLoop = setInterval(testWebSocket, 1000 + Math.random() * 1000);
+    //testWebSocket();
+  }
   function onMessage(evt) {
-    if(evt.data == 'PING') return;
     writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data+'</span>');
     var obj = JSON.parse(evt.data);
     switch(obj.cmd) {
       case 'PLAY':
-        playTrack(obj.srcId, obj.trackId, obj['time']);
+        playTrack(obj.srcId, obj.trackId, obj.time, obj.meta);
         break;
       default:
         break;
@@ -50,11 +62,12 @@
     output.appendChild(pre);
   }
 
-  function playTrack(srcType, trackId, seconds) {
+  function playTrack(srcType, trackId, seconds, meta) {
+    document.getElementById('player_info').innerHTML = 
+      '<a href="' + meta.url + '">' + meta.title + ' - ' + meta.creator + '</a>';
     switch(srcType) {
       case 'yt':
         player.loadVideoById(trackId, seconds);
-        player.style.display = 'block';
         break;
       default:
         break;
@@ -86,19 +99,49 @@
   }
   function onPlayerReady(evt) {
     player = evt.target;
-    player.style.display = 'none';
   }
   function onPlayerStateChange(evt) {
 
   }
 
+  function processLogin(evt) {
+    evt.preventDefault();
+    var user = document.loginForm.user.value;
+    var pass = document.loginForm.pass.value;
+    userCred = btoa(user + ':' + pass)
+    /*$.ajax({
+      url:'/auth',
+      dataType:'json',
+      beforeSend:function(xhr) { xhr.setRequestHeader('Authorization', 'Basic ' + userCred); }
+      success:function(model) {
+        document.loginForm.display = 'none';
+        document.loginControls.display = 'block';
+      }
+    });*/
+    return false;
+  }
+
   window.addEventListener("load", init, false);
 </script>
 
-<h2>WebSocket Test</h2>
+<div class="controls">
+<marquee class="player_info" behavior="scroll" direction="left">
+<span id="player_info">
+</span>
+</marquee>
+<span id="player_controls">
+</span>
+<span id="auth_controls">
+<form id="loginForm">
+    <label>Username:</label><input type="text" name="user" />
+    <label>Password:</label><input type="password" name="pass" />
+    <input type="submit" value="Login" />
+  </form>
+</span>
+</div>
 <div id="player"></div>
 <div id="irc">
-  <iframe src="https://kiwiirc.com/client/csc.nmu.edu/?nick=radio_user|?&theme=cli#nmu" style="border:0;width:100%;height:480px;"></iframe>
+  <iframe src="https://kiwiirc.com/client/csc.nmu.edu/?nick=radio_user|?&theme=cli#nmu" scrolling="no" id="irc-client"></iframe>
 </div>
 <div id="output"></div>
 </body>

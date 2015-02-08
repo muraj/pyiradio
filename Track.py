@@ -1,12 +1,12 @@
 class Track(object):
-  def __init__(self, srcId, trackId, duration, meta={}):
+  def __init__(self, srcId, trackId, duration, meta=None):
     self.srcId = srcId
     self.trackId = trackId
     self.duration = duration
     self.score = 0
     self.upvote_ids = set()
     self.downvote_ids = set()
-    self.meta = meta
+    self.meta = meta if meta else {}
 
   def addMeta(self, key, val):
     self.meta[key] = val
