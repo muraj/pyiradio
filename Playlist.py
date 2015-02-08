@@ -37,7 +37,7 @@ class Playlist(object):
     return True
 
   def _hash_track(self, srcid, trackid):
-    return srcid +'-'+ trackid
+    return srcid + '-' + trackid
 
   def getTrack(self, srcid, trackid, default=None):
     return self.uset.get(self._hash_track(srcid, trackid), default)

@@ -8,6 +8,7 @@ from twisted.internet import reactor
 from ViewerController import ViewerController
 from PlayerController import PlayerController
 from Playlist import Playlist
+from Track import Track
 
 class ViewerFactory(WebSocketServerFactory):
 
@@ -31,6 +32,8 @@ class ViewerFactory(WebSocketServerFactory):
 class PlayerFactory(ViewerFactory):
 
   MEDIA_CHANGE_DELAY = 2.0
+  MAX_DURATION = 480.0  # 8 minutes
+  MIN_DURATION = 30.0   # 30 seconds
 
   def __init__(self, *args, **kwargs):
     ViewerFactory.__init__(self, *args, **kwargs)
@@ -46,7 +49,26 @@ class PlayerFactory(ViewerFactory):
     self.play_next()
 
   def queue(self, track):
-    self.playList.push(track)
+    if not self.MIN_DURATION < track.duration < self.MAX_DURATION:
+      return False
+    if self.playList.push(track):
+      self.broadcast('PLAYLIST-ADD', track=track.as_dict())
+      return True
+    return False
+
+  def upvote(self, srcid, trackid, id):
+    if self.playList.upvote(srcid, trackid, id):
+      self.broadcast('PLAYLIST-CHANGE',
+        track=self.playList.getTrack(srcid, trackid).as_dict())
+      return True
+    return False
+
+  def downvote(self, srcid, trackid, id):
+    if self.playList.downvote(srcid, trackid, id):
+      self.broadcast('PLAYLIST-CHANGE',
+        track=self.playList.getTrack(srcid, trackid).as_dict())
+      return True
+    return False
 
   def play(self, track):
     log.msg('Playing track:' + str(track.as_dict()))
@@ -64,8 +86,10 @@ class PlayerFactory(ViewerFactory):
       t = random.sample(self.history, 1)[0]
       t = Track(t[0], t[1], t[2])
       self.play(t)
-    else:
+    else: # No tracks to play, try again in 1 second
       reactor.callLater(1, self.play_next)
 
   def buildTrack(self, srcid, trackid):
-    raise NotImplementedError()
+    # Query the srcid api for the duration/metadata of the track
+    # then build track.  Return a deferred while the track is being built
+    return defer.succeed(Track(srcid, trackid, 30)) # TODO: replace 30 with real duration

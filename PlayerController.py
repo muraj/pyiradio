@@ -16,18 +16,12 @@ class PlayerController(ViewerController):
       self.sendCommand('PLAY', srcId=track.srcId,
         trackId=track.trackId, time=t)
 
+"""
   def on_upvote(self, **kwargs):
-    # Check if this ip already voted
-    # if not, add to upvote and broadcast new score to everyone
-    #PlayerController.playList.upvote(srcid, trackid, id)
-    pass
+    self.factory.upvote(srcid, trackid, id)
 
   def on_downvote(self, **kwargs):
-    # if not, add to downvote and broadcast new score to everyone
-    #PlayerController.playList.downvote(srcid, trackid, id)
-    if self.factory.playList.downvote(srcid, trackid, id):
-      self.factory.broadcast('PLAYLIST_CHANGE',
-        track=self.factory.getTrack(srcid, trackid).as_dict())
+    self.factory.downvote(srcid, trackid, id)
 
   def on_auth(self, **kwargs):
     # Check some user database for auth
@@ -35,8 +29,8 @@ class PlayerController(ViewerController):
     self.auth = True
     self.sendCommand('AUTH', success=self.auth)
 
-  def on_add(self, **kwargs):
+  def on_queue(self, **kwargs):
     if not self.auth: return
-    # Get track information (duration) and add it to playlist
-    #if track.duration > ####: return
-    #PlayerController.playList.push(track)
+    d=self.factory.buildTrack(srcid, trackid)
+    d.addCallback(self.factory.queue)
+"""
