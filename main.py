@@ -45,6 +45,7 @@ if __name__ == '__main__':
   root.putChild('playlist', PlaylistResource(factory.playList))
   root.putChild('index.html', static.File('index.html'))
   root.putChild('queue', pr.protect_resource(QueueResource(factory)))
+  root.putChild('auth', pr.protect_resource(static.Data('SUCCESS', 'text/html')))
   root.putChild('vote',  VoteResource(factory))
   reactor.listenTCP(8080, server.Site(root))
 

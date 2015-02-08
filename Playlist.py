@@ -85,7 +85,7 @@ class QueueResource(resource.Resource):
       return '"Invalid arguments"'
     d = self.playerFactory.buildTrack(srcid, trackid)
     d.addCallback(self._finishRender, req)
-    d.addErrCallback(self._finishRender, None, req)
+    d.addErrback(self._finishRender, None, req)
     return server.NOT_DONE_YET
 
   def render_POST(self, req):

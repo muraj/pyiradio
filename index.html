@@ -12,10 +12,12 @@
   #loginForm { display: inline; }
   #loginForm label { display: inline; }
   #loginForm input { display: inline; }
+  #queueForm { display: inline; }
+  #queueForm input { display: inline; }
 </style>
 <script language="javascript" type="text/javascript">
   var player;
-  var userCred;
+  var userName, password;
   var reconnectLoop;
 
   // Websocket control
@@ -23,7 +25,10 @@
   var output;
   function init() {
     output = document.getElementById("output");
-    document.getElementById("loginForm").addEventListener('submit', processLogin);
+    document.loginForm.style.display = 'inline';
+    document.queueForm.style.display = 'none';
+    document.loginForm.addEventListener('submit', processLogin);
+    document.queueForm.addEventListener('submit', processQueue);
     testWebSocket();
   }
   function testWebSocket() {
@@ -106,18 +111,47 @@
 
   function processLogin(evt) {
     evt.preventDefault();
-    var user = document.loginForm.user.value;
-    var pass = document.loginForm.pass.value;
-    userCred = btoa(user + ':' + pass)
-    /*$.ajax({
-      url:'/auth',
-      dataType:'json',
-      beforeSend:function(xhr) { xhr.setRequestHeader('Authorization', 'Basic ' + userCred); }
-      success:function(model) {
-        document.loginForm.display = 'none';
-        document.loginControls.display = 'block';
+    userName = document.loginForm.user.value;
+    password = document.loginForm.pass.value;
+    var request = ((window.XMLHttpRequest) ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP"));
+    request.open("GET", "/auth", true, userName, password);
+    request.send(null);
+    request.onreadystatechange = function() {
+      if(request.readyState == 4) {
+        if(request.status == 200) {
+          document.loginForm.style.display = 'none';
+          document.queueForm.style.display = 'inline';
+        }
+        else
+          alert("Access Denied");
       }
-    });*/
+    }
+    return false;
+  }
+
+  function processQueue(evt) {
+    evt.preventDefault();
+    var srcid, trackid;
+    var parser = document.createElement('a');
+    parser.href = document.queueForm.url.value;
+    switch(parser.hostname) {
+      case 'youtube.com':
+      case 'www.youtube.com':
+        srcid = 'yt';
+        trackid = /\bv=([^&]+)/.exec(parser.search)[1];
+        break;
+      case 'youtu.be':
+        srcid = 'yt';
+        trackid = parser.pathname;
+        break;
+      case 'www.soundcloud.com':
+        return;
+        break;
+    }
+    var request = ((window.XMLHttpRequest) ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP"));
+    request.open("GET", "/queue?srcid="+srcid+"&trackid="+trackid, true, userName, password);
+    request.send(null);
+    document.queueForm.url.value = '';
     return false;
   }
 
@@ -132,10 +166,13 @@
 <span id="player_controls">
 </span>
 <span id="auth_controls">
-<form id="loginForm">
+  <form id="loginForm" name="loginForm">
     <label>Username:</label><input type="text" name="user" />
     <label>Password:</label><input type="password" name="pass" />
     <input type="submit" value="Login" />
+  </form>
+  <form id="queueForm" name="queueForm">
+    <input type="text" name="url" /><input type="submit" value="Queue" />
   </form>
 </span>
 </div>
