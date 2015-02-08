@@ -70,7 +70,7 @@ class QueueResource(resource.Resource):
   def _finishRender(self, track, req):
     if track:
       req.write(json.dumps(track.as_dict()))
-      #self.playerFactory.queue(track)
+      self.playerFactory.queue(track)
     else:
       req.write('Failed!')
     req.finish()
@@ -80,11 +80,10 @@ class QueueResource(resource.Resource):
     trackid = req.args.get('trackid', [None])[0]
     if not (srcid and trackid):
       return '"Invalid arguments"'
-    #d = self.playerFactory.buildTrack(srcid, trackid)
-    #d.addCallback(self._finishRender, req)
-    #d.addErrCallback(self._finishRender, None, req)
-    #return server.NOT_DONE_YET
-    return '"NOT IMPLEMENTED YET"'
+    d = self.playerFactory.buildTrack(srcid, trackid)
+    d.addCallback(self._finishRender, req)
+    d.addErrCallback(self._finishRender, None, req)
+    return server.NOT_DONE_YET
 
   def render_POST(self, req):
     return self.render_GET(req)
