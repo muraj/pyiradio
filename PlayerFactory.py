@@ -1,4 +1,5 @@
 import time
+import json
 import random
 
 from autobahn.twisted.websocket import WebSocketServerFactory
@@ -42,6 +43,10 @@ class PlayerFactory(ViewerFactory):
     self.history = kwargs.get('history', set())
     self.currentTrack = None
     self.lastChanged = 0
+    self.track_builders = {}
+
+  def addTrackBuilder(self, sid, trackBuilder):
+    self.track_builders[sid] = trackBuilder
 
   def _trackFinished(self, track):
     # Ensure the track hasn't changed by some other means
@@ -49,11 +54,11 @@ class PlayerFactory(ViewerFactory):
     self.trackFinished(track)
 
   def trackFinished(self, track):
-    # Add the track to history and play the next track!
-    self.history.add((track.srcId, track.trackId, track.duration))
+    self.history.add(json.dumps(track.as_dict()))
     self.play_next()
 
   def queue(self, track):
+    print('Adding track')
     if not self.MIN_DURATION < track.duration < self.MAX_DURATION:
       return False
     if self.playList.push(track):
@@ -89,7 +94,8 @@ class PlayerFactory(ViewerFactory):
       self.play(self.playList.pop())
     elif len(self.history) > 0:
       t = random.sample(self.history, 1)[0]
-      t = Track(t[0], t[1], t[2])
+      t = json.loads(t)
+      t = Track(t['srcId'], t['trackId'], t['duration'], t['meta'])
       self.play(t)
     else: # No tracks to play, try again in 1 second
       reactor.callLater(1, self.play_next)
@@ -97,4 +103,5 @@ class PlayerFactory(ViewerFactory):
   def buildTrack(self, srcid, trackid):
     # Query the srcid api for the duration/metadata of the track
     # then build track.  Return a deferred while the track is being built
-    return defer.succeed(Track(srcid, trackid, 30)) # TODO: replace 30 with real duration
+    # TODO: replace 30 with real duration
+    return self.track_builders.get(srcid, lambda sid,tid: defer.fail())(srcid, trackid)

@@ -5,7 +5,7 @@ from twisted.python import log
 import sys
 
 from PlayerFactory import PlayerFactory
-from Track import Track
+from Track import youtubeTrackBuilder
 from Playlist import PlaylistResource, QueueResource, VoteResource
 
 from zope.interface import implements
@@ -37,6 +37,7 @@ class ProtectedResource(object):
 if __name__ == '__main__':
   log.startLogging(sys.stdout)
   factory = PlayerFactory("ws://localhost:8090", debug=True)
+  factory.addTrackBuilder('yt', youtubeTrackBuilder)
   reactor.listenTCP(8090, factory)
   pr = ProtectedResource([FilePasswordDB('httpd.password')])
 
@@ -47,10 +48,10 @@ if __name__ == '__main__':
   root.putChild('vote',  VoteResource(factory))
   reactor.listenTCP(8080, server.Site(root))
 
-  mock_playlist = [Track('yt', 'ndiD8V7zpAs', 201), Track('yt', 'PfrsvfcZ8ZE', 68)]
+  mock_playlist = [('yt', 'ndiD8V7zpAs'), ('yt', 'PfrsvfcZ8ZE')]
 
-  for t in mock_playlist:
-    factory.queue(t)
+  for sid, tid in mock_playlist:
+    factory.buildTrack(sid, tid).addCallback(factory.queue)
 
   factory.play_next()
 

@@ -59,9 +59,12 @@ class VoteResource(resource.Resource):
       return '"Invalid arguments"'
     if vote == 'up':
       self.playerFactory.upvote(srcid, trackid, id)
-    else:
+    elif vote == 'down':
       self.playerFactory.downvote(srcid, trackid, id)
     return '' # Something?
+
+  def render_POST(self, req):
+    return self.render_GET(req)
 
 class QueueResource(resource.Resource):
   def __init__(self, playerFactory):
