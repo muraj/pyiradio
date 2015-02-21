@@ -4,7 +4,7 @@ import random
 
 from autobahn.twisted.websocket import WebSocketServerFactory
 from twisted.python import log
-from twisted.internet import reactor
+from twisted.internet import reactor, defer
 
 from ViewerController import ViewerController
 from PlayerController import PlayerController
@@ -103,4 +103,7 @@ class PlayerFactory(ViewerFactory):
     # Query the srcid api for the duration/metadata of the track
     # then build track.  Return a deferred while the track is being built
     # TODO: replace 30 with real duration
-    return self.track_builders.get(srcid, lambda sid,tid: defer.fail())(srcid, trackid)
+    def defaultBuilder(sid, tid):
+      s = "Failed to find source builder " + sid
+      return defer.fail(Exception(s))
+    return self.track_builders.get(srcid, defaultBuilder)(srcid, trackid)
