@@ -59,17 +59,19 @@ def youtubeTrackBuilder(srcid, trackid):
   d.addCallback(_parseYT)
   return d
 
-def soundCloudBuilder(srcid, trackid):
-  import json
-  from twisted.web.client import getPage
-  clientid = 'YOUR_CLIENTID_HERE'
-  def _parseSC(body):
-    body = json.loads(body)
-    t=Track(srcid, trackid, body[u'duration'])
-    t.addMeta('title', body[u'title'])
-    t.addMeta('creator', body[u'user'][u'username'])
-    t.addMeta('url', body[u'permalink_url'])
-    return t
-  d=getPage("http://api.soundcloud.com/tracks/%s.json?client_id=%s" % (trackid, clientid))
-  d.addCallback(_parseSC)
-  return d
+class SoundCloudTrackBuilder(object):
+  CLIENT_ID = ''
+
+  def __call__(self, srcid, trackid):
+    import json
+    from twisted.web.client import getPage
+    def _parseSC(body):
+      body = json.loads(body)
+      t=Track(srcid, trackid, body[u'duration'])
+      t.addMeta('title', body[u'title'])
+      t.addMeta('creator', body[u'user'][u'username'])
+      t.addMeta('url', body[u'permalink_url'])
+      return t
+    d=getPage("http://api.soundcloud.com/tracks/%s.json?client_id=%s" % (trackid, self.CLIENT_ID))
+    d.addCallback(_parseSC)
+    return d
